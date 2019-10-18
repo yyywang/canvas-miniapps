@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>简易弹幕</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            position: relative;
+        }
+        
+        .input-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        #shoot-btn {
+            width: 100px;
+            cursor: pointer;
+            background-color: #fff;
+        }
+        
+        #shoot-btn:hover {
+            transition: all 0.5s;
+            background-color: chartreuse;
+        }
+    </style>
+    <script type="text/javascript" src="jscolor/jscolor.js"></script>
+    <script type="text/javascript">
+        /**
+		 * Created By Wesley on 2019/10/18
+         * 1. 定义一个对象保存单条弹幕的数据
+         * 2. 定义一个数组保存所有弹幕的数据
+         * 3. 隔一个时间段修改所有弹幕中的位置参数
+         * 4. 重新绘制所有弹幕
+         */
+        window.addEventListener("load", canvasApp, false);
+
+        var shoot; // 发送弹幕事件
+
+        function canvasApp() {
+            // 弹幕数组
+            var statusList = [];
+            // 当前弹幕数据
+            var status = {
+                message: "wesley wang",
+                fillOrStroke: "fill",
+                fontSize: "50",
+                fontFace: "serif",
+                textFillColor: "#ff0000",
+                fontWeight: "normal",
+                fontStyle: "normal",
+                speed: 1, // 最大速度为 2
+                startHeight: window.innerHeight / 2,
+                nowXPos: window.innerWidth
+            };
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            // 设置 canvas 宽高
+			theCanvas.width = window.innerWidth;
+			theCanvas.height = window.innerHeight - 4;
+
+            // 监听各设置值变化
+            var formElement = document.getElementById("textBox");
+            formElement.addEventListener('keyup', textBoxChanged, false);
+
+            formElement = document.getElementById("fillOrStroke");
+            formElement.addEventListener('change', fillOrStrokeChanged, false);
+
+            formElement = document.getElementById("textSize");
+            formElement.addEventListener('change', textSizeChanged, false);
+
+            formElement = document.getElementById("speed");
+            formElement.addEventListener('change', speedChanged, false);
+
+            formElement = document.getElementById("startHeight");
+            formElement.addEventListener('change', startHeightChanged, false);
+
+            formElement = document.getElementById("textFillColor");
+            formElement.addEventListener('change', textFillColorChanged, false);
+
+            formElement = document.getElementById("textFont");
+            formElement.addEventListener('change', textFontChanged, false);
+
+            formElement = document.getElementById("fontWeight");
+            formElement.addEventListener('change', fontWeightChanged, false);
+
+            formElement = document.getElementById("fontStyle");
+            formElement.addEventListener('change', fontStyleChanged, false);
+
+            setInterval(function() {
+                statusList.forEach(function(ele, index, arr) {
+                    if (ele.nowXPos > -window.innerWidth) {
+                        arr[index].nowXPos -= arr[index].speed;
+                    }
+                })
+                drawScreen();
+            }, 1)
+
+            // 渲染
+            function drawScreen() {
+                drawBackground();
+                statusList.forEach(function(ele) {
+                    drawOneBullet(ele);
+                })
+            }
+
+            // 绘制背景
+            function drawBackground() {
+                context.fillStyle = "#000";
+                context.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            }
+
+            // 绘制一条弹幕
+            function drawOneBullet(ele) {
+                var message = ele.message;
+                var fillOrStroke = ele.fillOrStroke;
+                var fontSize = ele.fontSize;
+                var fontFace = ele.fontFace;
+                var textFillColor = ele.textFillColor;
+                var fontWeight = ele.fontWeight;
+                var fontStyle = ele.fontStyle;
+
+                context.font = fontWeight + " " + fontStyle + " " + fontSize + "px " + fontFace;
+                var xPosition = ele.nowXPos;
+                var yPosition = ele.startHeight;
+
+                switch (fillOrStroke) {
+                    case "fill":
+                        context.fillStyle = textFillColor;
+                        context.fillText(message, xPosition, yPosition);
+                        break;
+                    case "stroke":
+                        context.strokeStyle = textFillColor;
+                        context.strokeText(message, xPosition, yPosition);
+                        break;
+                    case "both":
+                        context.fillStyle = textFillColor;
+                        context.fillText(message, xPosition, yPosition);
+                        context.strokeStyle = "#000000";
+                        context.strokeText(message, xPosition, yPosition);
+                        break;
+                }
+            }
+
+            function textBoxChanged(e) {
+                var target = e.target;
+                message = target.value;
+                status.message = message;
+            }
+
+            function fillOrStrokeChanged(e) {
+                var target = e.target;
+                fillOrStroke = target.value;
+                status.fillOrStroke = fillOrStroke;
+            }
+
+            function textSizeChanged(e) {
+                var target = e.target;
+                fontSize = target.value;
+                status.fontSize = fontSize;
+            }
+
+            function speedChanged(e) {
+                var target = e.target;
+                speed = target.value;
+                status.speed = speed / 100 * 2;
+            }
+
+
+            function startHeightChanged(e) {
+                var target = e.target;
+                startHeight = target.value;
+                status.startHeight = startHeight / 100 * window.innerHeight;
+            }
+
+            function textFillColorChanged(e) {
+                var target = e.target;
+                textFillColor = "#" + target.value;
+                status.textFillColor = textFillColor;
+            }
+
+            function textFontChanged(e) {
+                var target = e.target;
+                fontFace = target.value;
+                status.fontFace = fontFace;
+            }
+
+            function fontWeightChanged(e) {
+                var target = e.target;
+                fontWeight = target.value;
+                status.fontWeight = fontWeight;
+            }
+
+            function fontStyleChanged(e) {
+                var target = e.target;
+                fontStyle = target.value;
+                status.fontStyle = fontStyle;
+            }
+
+            /**
+             * 深拷贝一个对象
+             */
+            function copyObj(obj) {
+                var newObj = {};
+                for (let item in obj) {
+                    newObj[item] = obj[item]
+                }
+
+                return newObj
+            }
+
+            shoot = function() {
+                statusList.unshift(copyObj(status));
+                drawScreen();
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <canvas id="canvasOne">Your browser does not support HTML 5 Canvas. </canvas>
+        <div class="input-container">
+            <br> Text: <input id="textBox" placeholder="your text" />
+            <br> Fill Or Stroke :
+            <select id="fillOrStroke">
+                        <option value="fill">fill</option>
+                        <option value="stroke">stroke</option>
+                        <option value="both">both</option>
+                    </select>
+            <br> Text Font:
+            <select id="textFont">
+                        <option value="serif">serif</option>
+                        <option value="sans-serif">sans-serif</option>
+                        <option value="cursive">cursive</option>
+                        <option value="fantasy">fantasy</option>
+                        <option value="monospace">monospace</option>
+                    </select>
+            <br> Text Size: <input type="range" id="textSize" min="0" max="200" step="1" value="50" />
+            <br> Speed: <input type="range" id="speed" min="0" max="100" step="1" value="50" />
+            <br> Start Height: <input type="range" id="startHeight" min="0" max="100" step="1" value="50" />
+            <br> Text Color: <input class="color" id="textFillColor" value="FF0000" />
+            <br> Font Weight:
+            <select id="fontWeight">
+                        <option value="normal">normal</option>
+                        <option value="bold">bold</option>
+                        <option value="bolder">bolder</option>
+                        <option value="lighter">lighter</option>
+                    </select>
+            <br> Font Style:
+            <select id="fontStyle">
+                        <option value="normal">normal</option>
+                        <option value="italic">italic</option>
+                        <option value="oblique">oblique</option>
+                    </select>
+
+            <div style="margin-top: 20px">
+                <button id="shoot-btn" onclick="shoot()">biu~</button>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
